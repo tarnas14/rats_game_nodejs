@@ -91,7 +91,7 @@ const selectCard = async ({cards_in_hand, cards_on_table, scoring_mode, current_
       return
     }
 
-    log('WTH GRAND SLEM OUTSIDE ALL BRANCHES')
+    log('WTH SMALL SLEM OUTSIDE ALL BRANCHES')
   }
 
   log('select card WTH UNKNOWN SLEM')
