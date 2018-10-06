@@ -14,10 +14,87 @@ program
 const {log, wait} = utils(program.name)
 const {query, command} = communicationLayer(program.server, program.token, log)
 
-const selectCard = async ({cards_in_hand, cards_on_table, scoring_mode}) => {
-  const cardToPlay = cards_in_hand[0]
+const RANKS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+const toCardswithRankIndex = cards => cards.map(card => ({card, rankIndex: RANKS.findIndex(rank => rank === card.rank)}))
+const highestCard = cardsWithRankIndex => {
+  const sorted = cardsWithRankIndex.sort((a, b) => b.rankIndex - a.rankIndex)
 
-  await command(COMMAND.SELECT_CARD, {card: cardToPlay})
+  return sorted[0]
+}
+const lowestCard = cardsWithRankIndex => {
+  const sorted = cardsWithRankIndex.sort((a, b) => a.rankIndex - b.rankIndex)
+
+  return sorted[0]
+}
+
+const getHigherThanHighest = (cards_i, cardsToBeat_i) => {
+  const highestToBeat = highestCard(cardsToBeat_i) || {rankIndex: -1}
+
+  return cards_i.filter(card_i => card_i.rankIndex > highestToBeat.rankIndex)
+}
+
+const selectCard = async ({cards_in_hand, cards_on_table, scoring_mode, current_player}) => {
+  // if there is no suit what suit do I choose?
+  const tableSuit = (cards_on_table[0] || cards_in_hand[0]).suit // if the suit is not chosen, we should chose best suit according to cards in hand
+  const inHand_i = toCardswithRankIndex(cards_in_hand)
+  const inHandInSuit_i = toCardswithRankIndex(cards_in_hand.filter(card => card.suit === tableSuit))
+  const onTableInSuit_i = toCardswithRankIndex(cards_on_table.filter(card => card.suit === tableSuit))
+
+  // for GRAND_SLEM
+  if (scoring_mode === SLEM.GRAND) {
+    if (inHandInSuit_i.length) {
+      const winningCards_i = getHigherThanHighest(inHandInSuit_i, onTableInSuit_i)
+
+      const sortedWinningCards = winningCards_i.sort((a, b) => a.rankIndex - b.rankIndex)
+
+      // if I have a higher card in suit than on table throw lowest of the higher cards
+      if (sortedWinningCards.length) {
+        await command(COMMAND.SELECT_CARD, {card: sortedWinningCards[0].card})
+
+      // otherwise throw lowest card in suit
+      } else {
+        const lowestInSuit_i = lowestCard(inHandInSuit_i)
+
+        await command(COMMAND.SELECT_CARD, {card: lowestInSuit_i.card})
+      }
+
+      return
+
+    // if I don't have card in suit, throw lowest of cards in hand
+    } else {
+      const lowest_i = lowestCard(inHand_i)
+
+      await command(COMMAND.SELECT_CARD, {card: lowest_i.card})
+
+      return
+    }
+
+    log('WTH GRAND SLEM OUTSIDE ALL BRANCHES')
+  }
+
+  // for SMALL_SLEM
+  if (scoring_mode !== SLEM.GRAND) {
+    // throw lowest card in suit
+    if (inHandInSuit_i.length) {
+      const lowestInSuit_i = lowestCard(inHandInSuit_i)
+
+      await command(COMMAND.SELECT_CARD, {card: lowestInSuit_i.card})
+
+      return
+
+    // if I don't have card in suit, throw highest of cards
+    } else {
+      const highest_i = highestCard(inHand_i)
+
+      await command(COMMAND.SELECT_CARD, {card: highest_i.card})
+
+      return
+    }
+
+    log('WTH GRAND SLEM OUTSIDE ALL BRANCHES')
+  }
+
+  log('WTH UNKNOWN SLEM')
 }
 
 const selectSlem = async ({cards_in_hand, cards_on_table, scoring_mode}) => {
