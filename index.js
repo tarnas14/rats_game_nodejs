@@ -46,7 +46,7 @@ const getBestSuit = (cards_i, scoring_mode) => {
   if (scoring_mode === SLEM.GRAND) {
     return sortedSuits[0][0].card
   } else {
-   return randSuit[randSuit.length - 1].card
+   return sortedSuits[sortedSuits.length - 1].card
   }
 }
 
