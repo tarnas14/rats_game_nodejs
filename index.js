@@ -41,7 +41,9 @@ const getBestSuit = (cards_i, scoring_mode) => {
     }
   }, {'D': [], 'S': [], 'C': [], 'H': []})
 
-  const sortedSuits = [groupedPerSuit.D, groupedPerSuit.S, groupedPerSuit.C, groupedPerSuit.H].sort((a, b) => b.length - a.length)
+  const sortedSuits = [groupedPerSuit.D, groupedPerSuit.S, groupedPerSuit.C, groupedPerSuit.H]
+    .filter(suit => suit.length)
+    .sort((a, b) => b.length - a.length)
 
   if (scoring_mode === SLEM.GRAND) {
     return sortedSuits[0][0].card
