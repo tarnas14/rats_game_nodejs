@@ -98,7 +98,17 @@ const selectCard = async ({cards_in_hand, cards_on_table, scoring_mode, current_
 }
 
 const selectSlem = async ({cards_in_hand, cards_on_table, scoring_mode}) => {
-  const slem = SLEM.GRAND
+  const inHand_i = toCardswithRankIndex(cards_in_hand)
+  const highCards = inHand_i.filter(card_i => card_i.rankIndex > 7)
+
+  let slem = [SLEM.GRAND, SLEM.SMALL][Math.floor(Math.random()*2)]
+  if (inHand_i.length / highCards.length < .4) {
+    slem = SLEM.SMALL
+  }
+
+  if (inHand_i.length / highCards.length > .6) {
+    slem = SLEM.GRAND
+  }
 
   await command(COMMAND.SELECT_SLEM, {slem: slem})
 }
