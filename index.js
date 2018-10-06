@@ -94,7 +94,7 @@ const selectCard = async ({cards_in_hand, cards_on_table, scoring_mode, current_
     log('WTH GRAND SLEM OUTSIDE ALL BRANCHES')
   }
 
-  log('WTH UNKNOWN SLEM')
+  log('select card WTH UNKNOWN SLEM')
 }
 
 const selectSlem = async ({cards_in_hand, cards_on_table, scoring_mode}) => {
@@ -103,10 +103,29 @@ const selectSlem = async ({cards_in_hand, cards_on_table, scoring_mode}) => {
   await command(COMMAND.SELECT_SLEM, {slem: slem})
 }
 
-const discardCards = async ({cards_in_hand, cards_on_table, scoring_mode}) => {
-  const toDiscard = cards_in_hand.slice(0, 3)
+const discardCards = async ({cards_in_hand, scoring_mode}) => {
+  const inHand_i = toCardswithRankIndex(cards_in_hand)
+  // discard lowest cards
+  if (scoring_mode === SLEM.GRAND) {
+    const lowToHigh = inHand_i.sort((a, b) => b.rankIndex - a.rankIndex)
 
-  await command(COMMAND.DISCARD, {cards: toDiscard})
+    const toDiscard = lowToHigh.slice(0, 3).map(card_i => card_i.card)
+
+    await command(COMMAND.DISCARD, {cards: toDiscard})
+
+    return
+  //discard highest cards
+  } else {
+    const highToLow = inHand_i.sort((a, b) => a.rankIndex - b.rankIndex)
+
+    const toDiscard = highToLow.slice(0, 3).map(card_i => card_i.card)
+
+    await command(COMMAND.DISCARD, {cards: toDiscard})
+
+    return
+  }
+
+  log('discard WTH UNKNOWN SLEM')
 }
 
 const gameLoop = async () => {
