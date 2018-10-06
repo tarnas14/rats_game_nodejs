@@ -33,10 +33,27 @@ const getHigherThanHighest = (cards_i, cardsToBeat_i) => {
   return cards_i.filter(card_i => card_i.rankIndex > highestToBeat.rankIndex)
 }
 
+const getBestSuit = (cards_i, scoring_mode) => {
+  const groupedPerSuit = cards_i.reduce((accu, card_i) => {
+    return {
+      ...accu,
+      [card_i.card.suit]: [...accu[card_i.card.suit], card_i],
+    }
+  }, {'D': [], 'S': [], 'C': [], 'H': []})
+
+  const sortedSuits = [groupedPerSuit.D, groupedPerSuit.S, groupedPerSuit.C, groupedPerSuit.H].sort((a, b) => b.length - a.length)
+
+  if (scoring_mode === SLEM.GRAND) {
+    return sortedSuits[0][0].card
+  } else {
+   return randSuit[randSuit.length - 1].card
+  }
+}
+
 const selectCard = async ({cards_in_hand, cards_on_table, scoring_mode, current_player}) => {
-  // if there is no suit what suit do I choose?
-  const tableSuit = (cards_on_table[0] || cards_in_hand[0]).suit // if the suit is not chosen, we should chose best suit according to cards in hand
   const inHand_i = toCardswithRankIndex(cards_in_hand)
+  // if there is no suit what suit do I choose?
+  const tableSuit = (cards_on_table[0] || getBestSuit(inHand_i, scoring_mode)).suit // if the suit is not chosen, we should chose best suit according to cards in hand
   const inHandInSuit_i = toCardswithRankIndex(cards_in_hand.filter(card => card.suit === tableSuit))
   const onTableInSuit_i = toCardswithRankIndex(cards_on_table.filter(card => card.suit === tableSuit))
 
